@@ -17,7 +17,7 @@
 이해를 돕기 위해서 `turbo-frame-targeting` 이라는 프로젝트를 생성하겠습니다. 
 
 ```bash
-rails new turbo-frame-targeting && turbo-frame-targeting
+rails new turbo-frame-targeting && cd turbo-frame-targeting
 ```
 
 프로젝트 셋업 명령을 실행하겠습니다. 
