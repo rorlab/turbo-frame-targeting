@@ -1,0 +1,25 @@
+<p style="color: green"><%= notice %></p>
+
+<%= turbo_stream_from "all-posts" %>
+
+<div class='page-header'>
+  <h1>Posts</h1>
+  <p>
+    <%= link_to "New post", new_post_path, data: { turbo_frame: 'post'} %>
+  </p>
+</div>
+
+<div class='container'>
+  <div class='list'>
+    <ul id="posts">
+      <% @posts.each do |post| %>
+        <li id="<%= dom_id post %>">
+          <%= link_to post.title, post, data: { turbo_frame: "post" } %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+  <div class='content'>
+    <%= turbo_frame_tag :post %>
+  </div>
+</div>
