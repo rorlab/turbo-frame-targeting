@@ -1,6 +1,6 @@
 # Turbo Frame: Targeting
 
-레일스 7 에서는 디폴트 프론트엔드 프레임워크로 hotwire를 사용하고 있습니다. hotwire 의 터보 프레임을 사용할 때, 터보 프레임 안에서 링크나 폼 서브밋 이벤트가 발생하면, 동일한 터보 프레임을 타겟으로 서버 응답 결과를 업데이트 하게 됩니다. 이와 같이 특정 터보 프레임으로 페이지 이동을 제한하는 것을 `scoped navigation` 이라고 합니다. 따라서 터보 기능을 사용할 때 페이지 이동을 body 전체로 제한하는 것을 터보 드라이브, body 내의 특정 부분으로 제한하는 것을 터보 프레임으로 생각할 수 있을 것 같습니다.  
+레일스 7 에서는 디폴트 프론트엔드 프레임워크로 `hotwire`를 사용하고 있습니다. `hotwire` 의 터보 프레임을 사용할 때, 터보 프레임 안에서 링크나 폼 서브밋 이벤트가 발생하면, 동일한 터보 프레임 안에서 서버 응답 결과를 업데이트 하게 됩니다. 이와 같이 특정 터보 프레임으로 페이지 이동을 제한하는 것을 `scoped navigation` 이라고 합니다. 따라서 터보 기능을 사용할 때, 페이지 이동을 `body` 태그 전체로 제한하는 것을 터보 드라이브, `body` 태그 내의 특정 부분으로 제한하는 것을 터보 프레임으로 생각할 수 있을 것 같습니다.  
 
 ![image-20230827203551439](/public/image-20230827203551439.png)
 
@@ -8,7 +8,7 @@
 
 ![image-20230827204814343](/public/image-20230827204814343.png)
 
-디폴트 상태에서 `target` 속성값을 지정하지 않을 경우에는 `_self` 값이 생략된 것으로 생각하면 됩니다. 테스트해 본 결과  `target` 속성을 지정하지 않은 경우와 `target` 속성 `_self` 로 지정한 경우 동일한 결과를 보여 주었습니다.
+디폴트 상태에서 `target` 속성값을 지정하지 않을 경우에는 `_self` 값이 생략된 것으로 생각하면 됩니다. 테스트해 본 결과  `target` 속성을 지정하지 않은 경우와 `target` 속성 `_self` 로 지정한 경우 모두 동일한 결과를 보여 주었습니다.
 
 ![image-20230827204843699](/public/image-20230827204843699.png)
 
@@ -100,6 +100,12 @@ bin/rails server
 </div>
 ```
 
+`posts` 인덱스 페이지의 레이아웃을 두개의 컬럼으로 나누었습니다. 
+
+왼쪽 컬럼에는 `posts` 목록이 보이도록 하고, `post` 링크를 클릭했을 때 오른쪽 컬럼에서 `show` 액션의 뷰 템플릿이 렌더링 되어 보이도록 디자인 했습니다. 
+
+이 때 `post` 을 수정하여 업데이트한 경우에 왼쪽 컬럼의 `posts` 목록에서도 동시에 업데이트된 `title` 이 즉시 반영되도록 하기 위해서 3번 코드라인을 추가하였습니다.
+
 3번 코드라인은 `all-posts` 채널로 들어 오는 터보 스트림을 `subscribe` 하도록 해 줍니다. 23번 코드라인을 추가하게 되면, `post` 터보 프레임에서 데이터 변경 이벤트가 발생할 때 백그라운로 `all-posts` 채널로 메시지가 `broadcast` 되도록 할 수 있습니다. 이를 위해서는 `app/models/post.rb` 파일을 열고 아래와 같이 업데이트 합니다.  
 
 ```ruby
@@ -111,7 +117,9 @@ end
 `app/views/posts/_post.html.erb` 파일을 열고 아래와 같이 변경하고
 
 ```erb
-<li id="<%= dom_id post %>"><%= link_to post.title, post, data: { turbo_frame: 'post' } %></li>
+<li id="<%= dom_id post %>">
+  <%= link_to post.title, post, data: { turbo_frame: 'post' } %>
+</li>
 ```
 
 대신에 `app/views/posts/_post_for_show.html.erb` 파일을 추가하고 아래와 같이 코드를 작성합니다.
@@ -148,7 +156,7 @@ end
 <% end %>
 ```
 
-스타일링을 위해서 app/assets/stylesheets/application.css 파일을 열고 아래와 같이 추가합니다. 
+스타일링을 위해서 `app/assets/stylesheets/application.css` 파일을 열고 아래와 같이 추가합니다. 
 
 ```css
 .container {
@@ -192,6 +200,8 @@ end
 }
 ```
 
+`post` 를 `create` 하거나 `edit` 할 때 응답결과를 `post ` 터보 프레임으로 업데이트하기 위해서 `new` 와 `edit` 액션 뷰 템플릿 전체를 각각 <turbo-frame> ··· </turbo-frame> 으로 `wrapping` 합니다.
+
 `new.html.erb` 
 
 ```erb
@@ -229,7 +239,11 @@ end
 
 ![image-20230827211016978](/public/image-20230827211016978.png)
 
-이번에는 `views/posts/index.html.erb` 파일을 열고 `turbo_frame` 값을 `_top` 으로 변경합니다.
+오른쪽 컬럼에 show 액션 뷰 템플릿이 렌더링 되어 보이는 것을 확인할 수 있습니다.
+
+`New post` 링크나 `Edit this post` 링크, `Destroy this post` 버튼을 클릭하여 왼쪽 posts 목록에 실시간으로 결과가 업데이트 되는지도 확인해 보기 바랍니다.  그리고 `Back to posts` 링크를 클릭하면 오른쪽 컬럼의 내용을 닫는 결과를 보이게 됩니다. 
+
+이번에는 `views/posts/index.html.erb` 파일을 열고 각 post 링크의 `turbo_frame` 값을 `_top` 으로 변경합니다.
 
 ```erb
 <div class='container'>
@@ -248,12 +262,12 @@ end
 </div>
 ```
 
-이제 인덱스 페이지 내에서  임의의 `post ` 링크를 클릭하면  `show` 액션 뷰 페이지가 전체 페이지로 보이게 됩니다. 터보 드라이브가 작동하는 것과 동일한 결과를 보여주게 됩니다. 
+이제 인덱스 페이지 내에서  임의의 `post ` 링크를 클릭하면  `show` 액션 뷰 페이지가 전체 페이지로 보이게 됩니다. 이것은 터보 드라이브가 작동하는 것과 동일한 결과를 보여주게 됩니다. 
 
 ![image-20230827212059820](/public/image-20230827212059820.png)
 
-그리고 `show` 액션 뷰 템플릿 파일에서 "`Back to posts`" 링크와 "`Destroy this post`" 버튼의 `turbo_frame` 키 값을 `_top` 으로 변경하면 클릭 시에 인덱스 페이지로 이동합니다.
+그리고 `show` 액션 뷰 템플릿 파일에서 "`Back to posts`" 링크와 "`Destroy this post`" 버튼의 `turbo_frame` 키 값을 `_top` 으로 변경하면 클릭 시에 posts 인덱스 페이지로 이동하게 됩니다.
 
-지금까지 터브 프레임의 `target` 사용법에 대해서 알아 보았습니다. 
+이상으로 터브 프레임의 `target` 사용법에 대해서 알아 보았습니다. 
 
 감사합니다.
